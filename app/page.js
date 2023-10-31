@@ -30,6 +30,47 @@ export default function Page() {
     metaMask.resetState()
   }
 
+  const [balance, setBalance] = useState("");
+  useEffect(() => {
+    const fetchbalance = async () => {
+      const signer = provider.getSigner();
+      const smartContract = new ethers.Contract(
+        contractAddress, abi, signer
+      )
+      const myBalance = await smartContract.balanceOf(accounts[0])
+      console.log(formatEther(myBalance));
+      setBalance(formatEther(myBalance))
+    }
+    if (isActive) {
+      fetchbalance();
+    }
+  }, [isActive]);
+
+  const [nitiValue, setNitiValue] = useState(0);
+  const handleSetNitiValue = (e) =>{
+    setNitiValue(e.target.value);
+  }
+  
+
+  const handleBuy = async() =>{
+    try{
+      if (nitiValue <= 0) {
+        return;
+      }
+      const signer = provider.getSigner();
+      const smartContract = new ethers.Contract(
+        contractAddress, abi, signer
+      )
+      const buyValue = parseUnits(nitiValue.toString(), "ether");
+      const tx = await smartContract.buy({
+        value:buyValue.toString()
+      });
+      console.log("Transaction hash!!",tx.hash);
+    }catch(err){
+      console.log(err);
+    }
+  };
+  
   return (
     <>
       <div className="navbar bg-neutral">
@@ -39,25 +80,49 @@ export default function Page() {
           </a>
         </div>
         <div className="navbar-center outline outline-2 outline-neutral-content rounded-full p-2">
-          <span className="text-base-300">Accounts : {accounts ? accounts[0] : ''}</span>
+          <span className="text-base-300 px-3">Accounts : {accounts ? accounts[0] : ''}</span>
         </div>
         <div className="navbar-end flex-3">
           {isActive ?
-            <button class="btn btn-ghost text-error" type='button' onClick={handleDisconnect} value={'Disconnect'}>Disconnect</button>
+            <button className="btn btn-ghost text-error" type='button' onClick={handleDisconnect} value={'Disconnect'}>Disconnect</button>
             :
-            <button class="btn btn-ghost text-primary" type='button' onClick={handleConnect} value={'Connect'}>Connect</button>
+            <button className="btn btn-ghost text-info" type='button' onClick={handleConnect} value={'Connect'}>Connect</button>
           }
         </div>
       </div>
       {/* card */}
-      <div class="flex justify-center items-center m-24">
-        <div class="card w-96 bg-base-200 shadow-lg w-[20rem] items-center">
-        <div class="card-body">
-            <h2 class="card-title">ChainId:  {chainid}</h2>
-            <p>IsActive:  {isActive.toString()}</p>
+      <div className="flex justify-center items-center m-24 text-center drop-shadow-lg ">
+        <div className="card w-[36rem] bg-base-100 shadow-lg w-[20rem] items-center drop-shadow border">
+          <div className="card-body ">
+            <div className="mt-5">
+              <div className="indicator font-bold mb-2">
+                <span className="indicator-item indicator-top indicator-center badge text-lg border-none w-24 bg-base-200 p-3">ChainId</span>
+                <p className="input input-bordered w-36 flex justify-center items-center text-sm p-6 bg-base-200 ">{chainid}</p>
+              </div>
+              {/* <p>IsActive:  {isActive.toString()}</p> */}
+              <div className="mt-5">
+                <div className="indicator font-bold mb-2">
+                  <span className="indicator-item indicator-top indicator-center badge border-none text-[18px] w-28 bg-base-200 p-3">Accounts</span>
+                  <p className="input input-bordered w-[26rem] flex justify-center items-center text-sm p-6 bg-base-200 ">{accounts ? accounts[0] : ''}</p>
+                </div>
+              </div>
+              <div className="mt-5">
+                <div className="indicator font-bold mb-2">
+                  <span className="indicator-item indicator-top indicator-center badge border-none text-[18px] w-24 bg-base-200 p-3">Balance</span>
+                  <p className="input input-bordered w-36 flex justify-center items-center text-sm p-6 bg-base-200 ">{isActive && balance}</p>
+                </div>
+              </div>
+              <div className="mt-5">
+                <div className="indicator font-bold mb-2">
+                  <span className="indicator-item indicator-top indicator-center badge border-none text-[18px] w-24 bg-base-200 p-3">Buy</span>
+                  <input className="input input-bordered w-48 flex justify-center items-center text-sm p-6 bg-base-200 text-center" onChange={handleSetNitiValue} />
+                </div>
+              </div>
+              <a className="btn btn-error text-neutral w-28 hover:bg-red-500 hover:text-base-100" onClick={handleBuy}>BUY</a>
+            </div>
+          </div>
         </div>
       </div>
-      </div>  
     </>
   )
 }

@@ -31,8 +31,12 @@ module.exports = {
 
           "error": "#e58b8b",
         },
+        fontFamily: {
+          'poppins': ['Poppins', 'sans-serif'],
+          'Prompt': ['Prompt', 'sans-serif']
+        },
       },
     ],
   },
-   plugins: [require('daisyui')],
+  plugins: [require("daisyui", "@tailwindcss/forms")],
 }
