@@ -5,6 +5,7 @@ import { MetaMask } from "@web3-react/metamask"
 import { ethers } from "ethers"
 import React, { useState, useEffect } from "react"
 import abi from "./abi.json"
+import Poke from "./components/Poke"
 
 const [metaMask, hooks] = initializeConnector((actions) => new MetaMask({ actions }));
 const { useChainId, useAccounts, useIsActivating, useIsActive, useProvider } = hooks;
@@ -17,6 +18,7 @@ export default function Page() {
   const isActive = useIsActive();
   const provider = useProvider();
   const [error, setError] = useState(undefined)
+  const [transactionHash, setTransactionHash] = useState(null);
 
   useEffect(() => {
     void metaMask.connectEagerly().catch(() => {
@@ -47,36 +49,37 @@ export default function Page() {
   }, [isActive]);
 
   const [nitiValue, setNitiValue] = useState(0);
-  const handleSetNitiValue = (e) =>{
+  const handleSetNitiValue = (e) => {
     setNitiValue(e.target.value);
   }
-  
 
-  const handleBuy = async() =>{
-    try{
+  const handleBuy = async () => {
+    try {
       if (nitiValue <= 0) {
         return;
       }
       const signer = provider.getSigner();
       const smartContract = new ethers.Contract(
         contractAddress, abi, signer
-      )
+      );
       const buyValue = parseUnits(nitiValue.toString(), "ether");
       const tx = await smartContract.buy({
-        value:buyValue.toString()
+        value: buyValue.toString()
       });
-      console.log("Transaction hash!!",tx.hash);
-    }catch(err){
+      console.log("Transaction hash!!", tx.hash);
+    } catch (err) {
       console.log(err);
     }
   };
-  
+
+
   return (
     <>
-      <div className="navbar bg-neutral">
+
+      <div className="navbar bg-neutral h-20">
         <div className="navbar-start ">
-          <a className="btn btn-link no-underline hover:no-underline  text-xl text-base-100">
-            BlockChain
+          <a className="btn btn-link no-underline hover:no-underline text-xl text-base-100">
+            Buy Pokemon
           </a>
         </div>
         <div className="navbar-center outline outline-2 outline-neutral-content rounded-full p-2">
@@ -90,39 +93,22 @@ export default function Page() {
           }
         </div>
       </div>
-      {/* card */}
-      <div className="flex justify-center items-center m-24 text-center drop-shadow-lg ">
-        <div className="card w-[36rem] bg-base-100 shadow-lg w-[20rem] items-center drop-shadow border">
-          <div className="card-body ">
-            <div className="mt-5">
-              <div className="indicator font-bold mb-2">
-                <span className="indicator-item indicator-top indicator-center badge text-lg border-none w-24 bg-base-200 p-3">ChainId</span>
-                <p className="input input-bordered w-36 flex justify-center items-center text-sm p-6 bg-base-200 ">{chainid}</p>
-              </div>
-              {/* <p>IsActive:  {isActive.toString()}</p> */}
-              <div className="mt-5">
-                <div className="indicator font-bold mb-2">
-                  <span className="indicator-item indicator-top indicator-center badge border-none text-[18px] w-28 bg-base-200 p-3">Accounts</span>
-                  <p className="input input-bordered w-[26rem] flex justify-center items-center text-sm p-6 bg-base-200 ">{accounts ? accounts[0] : ''}</p>
-                </div>
-              </div>
-              <div className="mt-5">
-                <div className="indicator font-bold mb-2">
-                  <span className="indicator-item indicator-top indicator-center badge border-none text-[18px] w-24 bg-base-200 p-3">Balance</span>
-                  <p className="input input-bordered w-36 flex justify-center items-center text-sm p-6 bg-base-200 ">{isActive && balance}</p>
-                </div>
-              </div>
-              <div className="mt-5">
-                <div className="indicator font-bold mb-2">
-                  <span className="indicator-item indicator-top indicator-center badge border-none text-[18px] w-24 bg-base-200 p-3">Buy</span>
-                  <input className="input input-bordered w-48 flex justify-center items-center text-sm p-6 bg-base-200 text-center" onChange={handleSetNitiValue} />
-                </div>
-              </div>
-              <a className="btn btn-error text-neutral w-28 hover:bg-red-500 hover:text-base-100" onClick={handleBuy}>BUY</a>
+      {isActive && (
+        <div className="flex justify-center items-center py-9 text-center drop-shadow-lg bg-base-200">
+          <div className="card w-[90vh] bg-base-100 shadow-lg items-center drop-shadow border">
+            <div className="card-body ">
+              <Poke handleBuy={handleBuy} handleSetNitiValue={handleSetNitiValue} />
             </div>
           </div>
         </div>
-      </div>
+      )}
+      {!isActive && (
+        <div className="bg-base-200 h-[91vh]">
+          <div className="container mx-auto h-[70vh] flex justify-center items-center py-8">
+            <p className="text-3xl">Please connect To MetaMask!!</p>
+          </div>
+        </div>
+      )}
     </>
   )
 }
